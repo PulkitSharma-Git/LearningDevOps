@@ -19,7 +19,16 @@ jobs:
           cache: 'pnpm'
 
       - name: Install pnpm
-        run: npm install -g pnpm
+        run: curl -fsSL https://get.pnpm.io/install.sh | sh
+
+      - name: Add pnpm to PATH
+        run: echo "export PATH=~/.local/share/pnpm:$PATH" >> $GITHUB_ENV
+
+      - name: Verify Installation
+        run: |
+          node -v
+          npm -v
+          pnpm -v  # This should work now
 
       - name: Install Dependencies
         run: pnpm install
