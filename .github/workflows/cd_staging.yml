@@ -1,38 +1,28 @@
 name: Deploy to Staging
-
 on:
   push:
     branches: [ main ]
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
+      
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'
-
+          cache: 'npm'
+      
       - name: Install pnpm
-        run: curl -fsSL https://get.pnpm.io/install.sh | sh
-
-      - name: Add pnpm to PATH
-        run: echo "export PATH=~/.local/share/pnpm:$PATH" >> $GITHUB_ENV
-
-      - name: Verify Installation
         run: |
-          node -v
-          npm -v
-          pnpm -v  # This should work now
-
+          corepack enable
+          corepack prepare pnpm@latest --activate
+      
       - name: Install Dependencies
         run: pnpm install
-
+      
       - name: Deploy to Server via SSH
         uses: appleboy/ssh-action@v0.1.10
         with:
@@ -42,7 +32,6 @@ jobs:
           script: |
             cd LearningDevOps/
             git pull origin main
-            npm install -g pnpm
             pnpm install
             pnpm run build
             pm2 restart web
