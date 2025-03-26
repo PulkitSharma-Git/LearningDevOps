@@ -1,39 +1,40 @@
 name: Deploy to Staging
 
-
 on:
   push:
-    branches:
-      - main
-
-permissions:
-  contents: read
+    branches: [ main ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    name: Deploy to Staging Server
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up SSH Key and Known Hosts
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          echo "${{ secrets.KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22  # Ensure the correct Node.js version
+          cache: 'pnpm'      # Speeds up installations
 
-      - name: Deploy via SSH
+      - name: Install Dependencies
         run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -tt ubuntu@3.89.115.59 "
-            cd LearningDevOps/ &&
-            git pull origin main &&
-            export PATH=/root/.nvm/versions/node/v22.14.0/bin:$PATH &&
-            npm install -g pnpm &&
-            pnpm install &&
-            pnpm run build &&
-            pm2 restart web &&
-            pm2 restart http-server &&
+          npm install -g pnpm
+          pnpm install
+
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd LearningDevOps/
+            git pull origin main
+            npm install -g pnpm
+            pnpm install
+            pnpm run build
+            pm2 restart web
+            pm2 restart http-server
             pm2 restart ws-server
-          "
