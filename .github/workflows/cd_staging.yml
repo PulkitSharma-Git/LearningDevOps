@@ -25,14 +25,14 @@ jobs:
 
       - name: Deploy via SSH
         run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@3.89.115.59 << 'EOF'
-            cd LearningDevOps/
-            git pull origin main
-            export PATH=/root/.nvm/versions/node/v22.13.1/bin:$PATH
-            npm install -g pnpm
-            pnpm install
-            pnpm run build
-            pm2 restart web
-            pm2 restart http-server
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -tt root@3.89.115.59 "
+            cd LearningDevOps/ &&
+            git pull origin main &&
+            export PATH=/root/.nvm/versions/node/v22.13.1/bin:$PATH &&
+            npm install -g pnpm &&
+            pnpm install &&
+            pnpm run build &&
+            pm2 restart web &&
+            pm2 restart http-server &&
             pm2 restart ws-server
-          EOF
+          "
